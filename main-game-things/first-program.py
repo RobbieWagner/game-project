@@ -1,3 +1,3 @@
 import random
 
-random.randrange(5)
+print(random.randrange(5))
