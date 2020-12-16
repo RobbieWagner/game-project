@@ -47,6 +47,9 @@ class MyGame(arcade.Window):
         self.player_sprite.center_y = 50
         self.player_list.append(self.player_sprite)
 
+    def on_update(self, delta_time: float):
+        
+
     def on_draw(self):
         arcade.start_render()
         
@@ -54,6 +57,9 @@ class MyGame(arcade.Window):
         self.player_list.draw()
 
         arcade.finish_render()
+    
+    def on_key_press(self, symbol: int, modifiers: int):
+
 
 
 def main():

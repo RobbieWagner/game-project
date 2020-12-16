@@ -1,1 +1,3 @@
-def meleeSwoosh
+import arcade
+
+def meleeSwoosh():
