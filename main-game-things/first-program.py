@@ -13,25 +13,19 @@ HEALTH_COLUMN = 1
 
 
 class Player(arcade.Sprite):
-    def __init__(self):
-        self.health = 20
-        self.hit = False
-
     def update(self):
-        if self.hit:
+        if self.player_hit:
             self.health -= 5
-            self.hit = False
+            self.player_hit = False
 
 
 class Enemy(arcade.Sprite):
-    def __init__(self):
-        self.health = 20
-        self.hit = False
-
-    def update(self):
-        if self.hit:
+   def update(self):
+        if self.enemy_hit:
             self.health -= 5
-            self.hit = False
+            self.enemy_hit = False
+        if self.health <= 0:
+            self.remove_from_sprite_lists()
 
 
 class Collider(arcade.Sprite):
@@ -55,6 +49,11 @@ class MyGame(arcade.Window):
         self.box_list = None
         self.cursor_list = None
         self.collider_list = None
+
+        self.enemy_health_list = []
+        self.player_health_list = []
+        self.enemy_hit = False
+        self.player_hit = False
 
         # Sprites info
         self.enemy_sprite = None
@@ -86,16 +85,18 @@ class MyGame(arcade.Window):
         self.collider_list = arcade.SpriteList()
 
         # Image made in Piskel
-        self.enemy_sprite = Enemy("SlugEnemy.png", SPRITE_SCALING_ENEMY)
+        self.enemy_sprite = Enemy("SlugEnemy.png", 1)
         self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 200
         self.enemy_sprite.center_y = SCREEN_HEIGHT / 2
         self.enemy_list.append(self.enemy_sprite)
+        self.enemy_health_list.append(10)
 
         # Image made in Piskel
-        self.player_sprite = Player("Protagonist.png", SPRITE_SCALING_PLAYER)
+        self.player_sprite = Player("Protagonist.png", 1)
         self.player_sprite.center_x = SCREEN_WIDTH / 2 - 200
         self.player_sprite.center_y = SCREEN_HEIGHT / 2
         self.player_list.append(self.player_sprite)
+        self.player_health_list.append(20)
 
         # Image made in Piskel
         self.box_sprite = arcade.Sprite("Box.png", 1)
@@ -110,7 +111,7 @@ class MyGame(arcade.Window):
         self.cursor_list.append(self.cursor_sprite)
 
         # Image made in Piskel
-        self.collider_sprite = arcade.Sprite("Collider.png", 1)
+        self.collider_sprite = Collider("Collider.png", 1)
         self.collider_sprite.center_x = SCREEN_WIDTH + 50
         self.collider_sprite.center_y = SCREEN_HEIGHT + 50
         self.collider_list.append(self.collider_sprite)
@@ -126,26 +127,28 @@ class MyGame(arcade.Window):
         self.cursor_list.draw()
 
         arcade.draw_lrtb_rectangle_outline(0, SCREEN_WIDTH, SCREEN_HEIGHT / 8, 0, arcade.color.WHITE_SMOKE, 10)
-
-        arcade.finish_render()
     
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
         self.cursor_sprite.center_x = x
         self.cursor_sprite.center_y = y
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
-        if self.cursor_sprite.center_x + 20 > x > self.cursor_sprite.center_x - 20 and \
-            self.cursor_sprite.center_y + 20 > y > self.cursor_sprite.center_y - 20:
+        if self.box_sprite.center_x + 20 > self.cursor_sprite.center_x > self.box_sprite.center_x - 20 and \
+            self.box_sprite.center_y + 20 > self.cursor_sprite.center_y > self.box_sprite.center_y - 20:
             self.box_clicked = True
 
     def on_update(self, delta_time: float):
         if self.box_clicked:
             self.collider_sprite.center_x = self.enemy_sprite.center_x
             self.collider_sprite.center_y = self.enemy_sprite.center_y
-            
+
             enemies_hit = arcade.check_for_collision_with_list(self.collider_sprite, self.enemy_list)
             for enemy in enemies_hit:
-                self.hit = True
+                self.enemy_health_list[0] -= 5
+            for enemy in self.enemy_list:
+                if self.enemy_health_list[0] == 0:
+                    enemy.remove_from_sprite_lists()
+            
             self.box_clicked = False
             
 
