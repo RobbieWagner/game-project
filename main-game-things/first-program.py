@@ -129,6 +129,7 @@ class MyGame(arcade.Window):
             no_health_point = self.enemy_sprite.center_x - 30
             length = 60 * self.enemy_health_list[self.enemy_list.index(enemy)] / self.enemy_health_max_list[enemy.index(self.enemy_list)]
 
+            # Draw health bars provided enemies are still alive
             if length > 0:
                 arcade.draw_lrtb_rectangle_outline(no_health_point - 2, self.enemy_sprite.center_x + 32, self.enemy_sprite.center_y + 50, self.enemy_sprite.center_y + 42, arcade.color.GRAY, 2)
                 arcade.draw_lrtb_rectangle_filled(no_health_point, no_health_point + length, self.enemy_sprite.center_y + 48, self.enemy_sprite.center_y + 44, arcade.color.RED)
