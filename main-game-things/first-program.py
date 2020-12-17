@@ -4,8 +4,6 @@ import random
 import arcade
 import time
 
-from pyglet.libs.win32.constants import COLOR_3DDKSHADOW
-
 # --- Constants ---
 SPRITE_SCALING_ENEMY = .5
 SPRITE_SCALING_PLAYER = 1
@@ -16,13 +14,15 @@ HEALTH_COLUMN = 1
 ENEMY_COUNT = random.randrange(3) + 1
 
 class Enemy(arcade.Sprite):
-    def __init__(self, image, scale, max_health):
+    def __init__(self, type, image, scale, max_health):
+        self.type = type
         super().__init__(image, scale)
         self.max_health = max_health
         self.cur_health = max_health
 
 class Player(arcade.Sprite):
-    def __init__(self, image, scale, max_health):
+    def __init__(self, character, image, scale, max_health):
+        self.character = character
         super().__init__(image, scale)
         self.max_health = max_health
         self.cur_health = max_health
@@ -70,7 +70,7 @@ class MyGame(arcade.Window):
         self.your_turn = False
         self.coin_flip = 0
 
-        arcade.set_background_color(arcade.color.BLACK)
+        arcade.set_background_color(arcade.color.GRAY_ASPARAGUS)
 
     def setup(self):
         """ Set up the game and initialize the variables. """
@@ -85,24 +85,43 @@ class MyGame(arcade.Window):
         # All Sprite images made in Piskel
         # Enemies
         for i in range(ENEMY_COUNT):
-            if i == 0:
-                self.enemy_sprite = Enemy("SlugEnemy.png", 1, max_health=15)
-                self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 200
-                self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 
-                self.enemy_list.append(self.enemy_sprite)
-            elif i == 1:
-                self.enemy_sprite = Enemy("SlugEnemy.png", .8, max_health=10)
-                self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
-                self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 100
-                self.enemy_list.append(self.enemy_sprite)
-            elif i == 2:
-                self.enemy_sprite = Enemy("SlugEnemy.png", .8, max_health=10)
-                self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
-                self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 100
-                self.enemy_list.append(self.enemy_sprite)
+            type = random.randrange(2)
+            if type == 0:
+                if i == 0:
+                    self.enemy_sprite = Enemy("slug", "SlugEnemy.png", .8, max_health=10)
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 200
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 
+                    self.enemy_list.append(self.enemy_sprite)
+                elif i == 1:
+                    self.enemy_sprite = Enemy("slug", "SlugEnemy.png", .6, max_health=5)
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 100
+                    self.enemy_list.append(self.enemy_sprite)
+                elif i == 2:
+                    self.enemy_sprite = Enemy("slug", "SlugEnemy.png", .6, max_health=5)
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 100
+                    self.enemy_list.append(self.enemy_sprite)
+            elif type == 1:
+                if i == 0:
+                    self.enemy_sprite = Enemy("spider", "SpiderEnemy.png", 1.3, max_health=15)
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 200
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 
+                    self.enemy_list.append(self.enemy_sprite)
+                elif i == 1:
+                    self.enemy_sprite = Enemy("spider", "SpiderEnemy.png", 1.1, max_health=10)
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 100
+                    self.enemy_list.append(self.enemy_sprite)
+                elif i == 2:
+                    self.enemy_sprite = Enemy("spider", "SpiderEnemy.png", 1.1, max_health=10)
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 100
+                    self.enemy_list.append(self.enemy_sprite)
+
 
         # Player
-        self.player_sprite = Player("Protagonist.png", 1, max_health=25)
+        self.player_sprite = Player("Protagonist", "Protagonist.png", 1, max_health=25)
         self.player_sprite.center_x = SCREEN_WIDTH / 2 - 200
         self.player_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16
         self.player_list.append(self.player_sprite)
@@ -149,9 +168,10 @@ class MyGame(arcade.Window):
             length = 60 * enemy.cur_health / enemy.max_health
         
             if length > 0:
-                arcade.draw_lrtb_rectangle_outline(no_health_point - 2, enemy.center_x + 32, enemy.center_y - 60, enemy.center_y - 68, arcade.color.GRAY, 2)
-                arcade.draw_lrtb_rectangle_filled(no_health_point, no_health_point + length, enemy.center_y - 62, enemy.center_y - 66, arcade.color.RED)
-        
+                arcade.draw_lrtb_rectangle_outline(no_health_point - 2, enemy.center_x + 32, enemy.center_y - 45, enemy.center_y - 53, arcade.color.GRAY, 2)
+                arcade.draw_lrtb_rectangle_filled(no_health_point, no_health_point + length, enemy.center_y - 47, enemy.center_y - 51, arcade.color.RED)
+                arcade.draw_text(enemy.type, no_health_point - 2, enemy.center_y - 68, arcade.color.WHITE, 10, 40, "left")
+
         for player in self.player_list:
             no_health_point = player.center_x - 30
             length = 60 * player.cur_health / player.max_health
