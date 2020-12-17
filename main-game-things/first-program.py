@@ -94,6 +94,14 @@ class MyGame(arcade.Window):
         self.enemy_health_list.append(15)
         self.enemy_health_max_list.append(15)
 
+        # Second enemy
+        self.enemy_sprite = Enemy("SlugEnemy.png", 1)
+        self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 200
+        self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + 250
+        self.enemy_list.append(self.enemy_sprite)
+        self.enemy_health_list.append(15)
+        self.enemy_health_max_list.append(15)
+
         # Image made in Piskel
         self.player_sprite = Player("Protagonist.png", 1)
         self.player_sprite.center_x = SCREEN_WIDTH / 2 - 200
@@ -130,12 +138,13 @@ class MyGame(arcade.Window):
         self.box_list.draw()
         self.cursor_list.draw()
 
-        no_health_point = self.enemy_sprite.center_x - 30
-        length = 60 * self.enemy_health_list[0] / self.enemy_health_max_list[0]
+        for enemy in(self.enemy_list):
+            no_health_point = self.enemy_sprite.center_x - 30
+            length = 60 * self.enemy_health_list[self.enemy_list.index(enemy)] / self.enemy_health_max_list[enemy.index(self.enemy_list)]
 
-        if length > 0:
-            arcade.draw_lrtb_rectangle_outline(no_health_point - 2, self.enemy_sprite.center_x + 32, self.enemy_sprite.center_y + 50, self.enemy_sprite.center_y + 42, arcade.color.GRAY, 2)
-            arcade.draw_lrtb_rectangle_filled(no_health_point, no_health_point + length, self.enemy_sprite.center_y + 48, self.enemy_sprite.center_y + 44, arcade.color.RED)
+            if length > 0:
+                arcade.draw_lrtb_rectangle_outline(no_health_point - 2, self.enemy_sprite.center_x + 32, self.enemy_sprite.center_y + 50, self.enemy_sprite.center_y + 42, arcade.color.GRAY, 2)
+                arcade.draw_lrtb_rectangle_filled(no_health_point, no_health_point + length, self.enemy_sprite.center_y + 48, self.enemy_sprite.center_y + 44, arcade.color.RED)
 
         arcade.draw_lrtb_rectangle_outline(0, SCREEN_WIDTH, SCREEN_HEIGHT / 8, 0, arcade.color.WHITE_SMOKE, 10)
 
@@ -150,13 +159,20 @@ class MyGame(arcade.Window):
 
     def on_update(self, delta_time: float):
         if self.box_clicked:
-            self.collider_sprite.center_x = self.enemy_sprite.center_x
-            self.collider_sprite.center_y = self.enemy_sprite.center_y
+            indexes = []
+            for enemy in self.enemy_list:
+                indexes.append(self.enemy_list.index(enemy))
+            target = random.randrange(len(indexes))
+            for enemy in self.enemy_list:
+                if target == self.enemy_list.index(enemy):
+                    self.collider_sprite.center_x = self.enemy_sprite.center_x
+                    self.collider_sprite.center_y = self.enemy_sprite.center_y
 
             enemies_hit = arcade.check_for_collision_with_list(self.collider_sprite, self.enemy_list)
             for enemy in enemies_hit:
-                self.enemy_health_list[0] -= 5
-                if self.enemy_health_list[0] == 0:
+                x = self.enemy_list.index(enemy)
+                self.enemy_health_list[x] -= 5
+                if self.enemy_health_list[x] == 0:
                     time.sleep(.5)
                     enemy.remove_from_sprite_lists()
             
