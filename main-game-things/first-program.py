@@ -82,7 +82,7 @@ class MyGame(arcade.Window):
         # Enemies
         for i in range(ENEMY_COUNT):
             if i == 0:
-                self.enemy_sprite = Enemy("SlugEnemy.png", 1, max_health=10)
+                self.enemy_sprite = Enemy("SlugEnemy.png", 1, max_health=15)
                 self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 200
                 self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 
                 self.enemy_list.append(self.enemy_sprite)
@@ -96,9 +96,6 @@ class MyGame(arcade.Window):
                 self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
                 self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 - 100
                 self.enemy_list.append(self.enemy_sprite)
-            else:
-                print(len(self.enemy_list))
-        print(len(self.enemy_list))
 
         # Player
         self.player_sprite = Player("Protagonist.png", 1, max_health=25)
@@ -135,21 +132,15 @@ class MyGame(arcade.Window):
         self.box_list.draw()
         self.cursor_list.draw()
 
-
         hi = 0
         # Draws the healthbars
         for enemy in self.enemy_list:
-            no_health_point = self.enemy_sprite.center_x - 30
-            length = 60 * self.enemy_sprite.cur_health / self.enemy_sprite.max_health
+            no_health_point = enemy.center_x - 30
+            length = 60 * enemy.cur_health / enemy.max_health
         
             if length > 0:
-                arcade.draw_lrtb_rectangle_outline(no_health_point - 2, self.enemy_sprite.center_x + 32, self.enemy_sprite.center_y + 50, self.enemy_sprite.center_y + 42, arcade.color.GRAY, 2)
-                arcade.draw_lrtb_rectangle_filled(no_health_point, no_health_point + length, self.enemy_sprite.center_y + 48, self.enemy_sprite.center_y + 44, arcade.color.RED)
-            
-            if not self.yeah:
-                hi += 1
-                print(hi)
-        self.yeah = True
+                arcade.draw_lrtb_rectangle_outline(no_health_point - 2, enemy.center_x + 32, enemy.center_y + 50, enemy.center_y + 42, arcade.color.GRAY, 2)
+                arcade.draw_lrtb_rectangle_filled(no_health_point, no_health_point + length, enemy.center_y + 48, enemy.center_y + 44, arcade.color.RED)
         
         arcade.draw_lrtb_rectangle_outline(0, SCREEN_WIDTH, SCREEN_HEIGHT / 8, 0, arcade.color.WHITE_SMOKE, 10)
 
@@ -171,19 +162,19 @@ class MyGame(arcade.Window):
             for enemy in self.enemy_list:
                 indexes.append(self.enemy_list.index(enemy))
             target = random.randrange(len(indexes))
+            print(target)
             for enemy in self.enemy_list:
                 if target == self.enemy_list.index(enemy):
-                    self.collider_sprite.center_x = self.enemy_sprite.center_x
-                    self.collider_sprite.center_y = self.enemy_sprite.center_y
+                    self.collider_sprite.center_x = enemy.center_x
+                    self.collider_sprite.center_y = enemy.center_y
 
             # Adds enemies with a collider over them into the enemies_hit list
             enemies_hit = arcade.check_for_collision_with_list(self.collider_sprite, self.enemy_list)
             print(len(enemies_hit))
             # Damages enemies with Collider over them. Kills them if their health drops to 0
             for enemy in enemies_hit:
-                self.enemy_sprite.cur_health -= 5
-                print("hi")
-                if self.enemy_sprite.cur_health <= 0:
+                enemy.cur_health -= 5
+                if enemy.cur_health <= 0:
                     time.sleep(.5)
                     enemy.remove_from_sprite_lists()
             
