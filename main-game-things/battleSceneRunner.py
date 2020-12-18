@@ -139,6 +139,8 @@ class MyGame(arcade.Window):
         self.box_list.append(self.box_sprite)
         self.box_sprite = Box("Heal.png", .5, False, "heal", "Protagonist")
         self.box_list.append(self.box_sprite)
+        self.box_sprite = Box("Box.png", 1, False, "no", "Protagonist")
+        self.box_list.append(self.box_sprite)
 
         # Arranges boxes
         for box in self.box_list:
@@ -225,8 +227,44 @@ class MyGame(arcade.Window):
                 box.center_y + 20 > self.cursor_sprite.center_y > box.center_y - 20:
                 box.is_clicked = True
     
-    def on_key_press(self, symbol: int, modifiers: int):
+    def on_key_press(self, key, modifiers):
         
+        if key == arcade.key.SPACE:
+            for box in self.box_list:
+                if not box.center_x == SCREEN_WIDTH + 50:
+                    box.is_clicked = True
+        
+        if key == arcade.key.D:
+            value = 0
+            for box in self.box_list:
+                if not box.center_x == SCREEN_WIDTH + 50 and not self.box_list.index(box) == len(self.box_list) - 1:
+                    value = self.box_list.index(box) + 1
+                elif not box.center_x == SCREEN_WIDTH + 50 and self.box_list.index(box) == len(self.box_list) - 1:
+                    value = 0
+            for box in self.box_list:
+                for player in self.player_list:
+                    if value == self.box_list.index(box) and player.name == box.associated_player:
+                        box.center_x = player.center_x
+                        box.center_y = player.center_y + 100
+                    else:
+                        box.center_x = SCREEN_WIDTH + 50
+                        box.center_y = SCREEN_WIDTH + 50
+
+        if key == arcade.key.A:
+            value = 0
+            for box in self.box_list:
+                if not box.center_x == SCREEN_WIDTH + 50 and not self.box_list.index(box) == 0:
+                    value = self.box_list.index(box) - 1
+                elif not box.center_x == SCREEN_WIDTH + 50 and self.box_list.index(box) == 0:
+                    value = len(self.box_list) - 1
+            for box in self.box_list:
+                for player in self.player_list:
+                    if value == self.box_list.index(box) and player.name == box.associated_player:
+                        box.center_x = player.center_x
+                        box.center_y = player.center_y + 100
+                    else:
+                        box.center_x = SCREEN_WIDTH + 50
+                        box.center_y = SCREEN_WIDTH + 50
 
     def on_update(self, delta_time: float):
         # Moves the Collider over to the slug when the box gets clicked
@@ -260,8 +298,10 @@ class MyGame(arcade.Window):
                     # Heals player associated with box
                     elif box.is_clicked and box.box_type == "heal":
                         for player in self.player_list:
-                            if player.name == box.associated_player:
-                                player.cur_health += 10
+                            if player.name == box.associated_player and player.cur_health <= player.max_health - 3:
+                                player.cur_health += 3
+                            elif player.name == box.associated_player and player.cur_health < player.max_health:
+                                player.cur_health = player.max_health
                         box.is_clicked = False
                         self.your_turn = False
             
