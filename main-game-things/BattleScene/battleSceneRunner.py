@@ -3,6 +3,7 @@
 import random
 import arcade
 import time
+from BattleScene import battleSceneClasses
 
 # --- Constants ---
 SPRITE_SCALING_ENEMY = .5
@@ -13,31 +14,6 @@ SPRITE_COLUMN = 0
 HEALTH_COLUMN = 1
 ENEMY_COUNT = random.randrange(3) + 1
 
-
-class Enemy(arcade.Sprite):
-    def __init__(self, type, image, scale, max_health):
-        self.type = type
-        super().__init__(image, scale)
-        self.max_health = max_health
-        self.cur_health = max_health
-
-
-class Player(arcade.Sprite):
-    def __init__(self, name, image, scale, max_health):
-        self.name = name
-        super().__init__(image, scale)
-        self.max_health = max_health
-        self.cur_health = max_health
-
-
-class Box(arcade.Sprite):
-    def __init__(self, image, scale, is_clicked, box_type, associated_player):
-        super().__init__(image, scale)
-        self.is_clicked = is_clicked
-        self.box_type = box_type
-        self.associated_player = associated_player
-
-
 class Collider(arcade.Sprite):
     def update(self):
         
@@ -46,7 +22,6 @@ class Collider(arcade.Sprite):
 
         if self.center_y < SCREEN_HEIGHT + 50:
             self.center_y = SCREEN_HEIGHT + 50
-
 
 class MyGame(arcade.Window):
 
@@ -99,50 +74,50 @@ class MyGame(arcade.Window):
             type = random.randrange(2)
             if type == 0:
                 if i == 0:
-                    self.enemy_sprite = Enemy("slug", "SlugEnemy.png", .8, max_health=10)
+                    self.enemy_sprite = battleSceneClasses.Enemy("slug", "SlugEnemy.png", .8, max_health=10)
                     self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 200
                     self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 
                     self.enemy_list.append(self.enemy_sprite)
                 elif i == 1:
-                    self.enemy_sprite = Enemy("slug", "SlugEnemy.png", .6, max_health=5)
+                    self.enemy_sprite = battleSceneClasses.Enemy("slug", "SlugEnemy.png", .6, max_health=5)
                     self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
                     self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 150
                     self.enemy_list.append(self.enemy_sprite)
                 elif i == 2:
-                    self.enemy_sprite = Enemy("slug", "SlugEnemy.png", .6, max_health=5)
+                    self.enemy_sprite = battleSceneClasses.Enemy("slug", "SlugEnemy.png", .6, max_health=5)
                     self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
                     self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 150
                     self.enemy_list.append(self.enemy_sprite)
             elif type == 1:
                 if i == 0:
-                    self.enemy_sprite = Enemy("spider", "SpiderEnemy.png", 1.3, max_health=15)
+                    self.enemy_sprite = battleSceneClasses.Enemy("spider", "SpiderEnemy.png", 1.3, max_health=15)
                     self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 200
                     self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 
                     self.enemy_list.append(self.enemy_sprite)
                 elif i == 1:
-                    self.enemy_sprite = Enemy("spider", "SpiderEnemy.png", 1.1, max_health=10)
+                    self.enemy_sprite = battleSceneClasses.Enemy("spider", "SpiderEnemy.png", 1.1, max_health=10)
                     self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
                     self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 150
                     self.enemy_list.append(self.enemy_sprite)
                 elif i == 2:
-                    self.enemy_sprite = Enemy("spider", "SpiderEnemy.png", 1.1, max_health=10)
+                    self.enemy_sprite = battleSceneClasses.Enemy("spider", "SpiderEnemy.png", 1.1, max_health=10)
                     self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
                     self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 150
                     self.enemy_list.append(self.enemy_sprite)
 
 
         # Player
-        self.player_sprite = Player("Protagonist", "Protagonist.png", 1, max_health=25)
+        self.player_sprite = battleSceneClasses.Player("Protagonist", "Protagonist.png", 1, max_health=25)
         self.player_sprite.center_x = SCREEN_WIDTH / 2 - 200
         self.player_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16
         self.player_list.append(self.player_sprite)
 
         # Boxes to be clicked
-        self.box_sprite = Box("Melee_Attack_Sword.png", .5, False, "attack", "Protagonist")
+        self.box_sprite = battleSceneClasses.Box("Melee_Attack_Sword.png", .5, False, "attack", "Protagonist")
         self.box_list.append(self.box_sprite)
-        self.box_sprite = Box("Heal.png", .5, False, "heal", "Protagonist")
+        self.box_sprite = battleSceneClasses.Box("Heal.png", .5, False, "heal", "Protagonist")
         self.box_list.append(self.box_sprite)
-        self.box_sprite = Box("Box.png", 1, False, "no", "Protagonist")
+        self.box_sprite = battleSceneClasses.Box("Box.png", 1, False, "no", "Protagonist")
         self.box_list.append(self.box_sprite)
 
         # Arranges boxes

@@ -1,4 +1,6 @@
-from BattleScene import battleSceneRunner
-import time
 import arcade
+import time
 import random
+from BattleScene import battleSceneRunner, battleSceneClasses
+
+battleSceneRunner.main()
