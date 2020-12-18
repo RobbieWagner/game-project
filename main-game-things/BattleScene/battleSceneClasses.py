@@ -1,7 +1,7 @@
 import arcade
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1375
+SCREEN_HEIGHT = 750
 
 class Enemy(arcade.Sprite):
     def __init__(self, type, image, scale, max_health):

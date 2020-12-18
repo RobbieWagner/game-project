@@ -8,11 +8,12 @@ from BattleScene import battleSceneClasses
 # --- Constants ---
 SPRITE_SCALING_ENEMY = .5
 SPRITE_SCALING_PLAYER = 1
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1375
+SCREEN_HEIGHT = 750
 SPRITE_COLUMN = 0
 HEALTH_COLUMN = 1
 ENEMY_COUNT = random.randrange(3) + 1
+
 
 class Collider(arcade.Sprite):
     def update(self):
@@ -22,6 +23,7 @@ class Collider(arcade.Sprite):
 
         if self.center_y < SCREEN_HEIGHT + 50:
             self.center_y = SCREEN_HEIGHT + 50
+
 
 class MyGame(arcade.Window):
 
@@ -75,40 +77,40 @@ class MyGame(arcade.Window):
             if type == 0:
                 if i == 0:
                     self.enemy_sprite = battleSceneClasses.Enemy("slug", "SlugEnemy.png", .8, max_health=10)
-                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 200
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 400
                     self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 
                     self.enemy_list.append(self.enemy_sprite)
                 elif i == 1:
                     self.enemy_sprite = battleSceneClasses.Enemy("slug", "SlugEnemy.png", .6, max_health=5)
-                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
-                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 150
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 425
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 200
                     self.enemy_list.append(self.enemy_sprite)
                 elif i == 2:
                     self.enemy_sprite = battleSceneClasses.Enemy("slug", "SlugEnemy.png", .6, max_health=5)
-                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
-                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 150
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 425
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 200
                     self.enemy_list.append(self.enemy_sprite)
             elif type == 1:
                 if i == 0:
-                    self.enemy_sprite = battleSceneClasses.Enemy("spider", "SpiderEnemy.png", 1.3, max_health=15)
-                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 200
+                    self.enemy_sprite = battleSceneClasses.Enemy("spider", "SpiderEnemy.png", 1, max_health=15)
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 400
                     self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 
                     self.enemy_list.append(self.enemy_sprite)
                 elif i == 1:
-                    self.enemy_sprite = battleSceneClasses.Enemy("spider", "SpiderEnemy.png", 1.1, max_health=10)
-                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
-                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 150
+                    self.enemy_sprite = battleSceneClasses.Enemy("spider", "SpiderEnemy.png", .8, max_health=10)
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 425
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 200
                     self.enemy_list.append(self.enemy_sprite)
                 elif i == 2:
-                    self.enemy_sprite = battleSceneClasses.Enemy("spider", "SpiderEnemy.png", 1.1, max_health=10)
-                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
-                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 150
+                    self.enemy_sprite = battleSceneClasses.Enemy("spider", "SpiderEnemy.png", .8, max_health=10)
+                    self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 425
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 200
                     self.enemy_list.append(self.enemy_sprite)
 
 
         # Player
         self.player_sprite = battleSceneClasses.Player("Protagonist", "Protagonist.png", 1, max_health=25)
-        self.player_sprite.center_x = SCREEN_WIDTH / 2 - 200
+        self.player_sprite.center_x = SCREEN_WIDTH / 2 - 400
         self.player_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16
         self.player_list.append(self.player_sprite)
 
