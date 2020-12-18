@@ -78,6 +78,9 @@ class MyGame(arcade.Window):
         self.your_turn = False
         self.coin_flip = 0
 
+        # Indicator for selected targets
+        self.target_selected = False
+
         arcade.set_background_color(arcade.color.GRAY_ASPARAGUS)
 
     def setup(self):
@@ -103,12 +106,12 @@ class MyGame(arcade.Window):
                 elif i == 1:
                     self.enemy_sprite = Enemy("slug", "SlugEnemy.png", .6, max_health=5)
                     self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
-                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 100
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 150
                     self.enemy_list.append(self.enemy_sprite)
                 elif i == 2:
                     self.enemy_sprite = Enemy("slug", "SlugEnemy.png", .6, max_health=5)
                     self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
-                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 100
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 150
                     self.enemy_list.append(self.enemy_sprite)
             elif type == 1:
                 if i == 0:
@@ -119,12 +122,12 @@ class MyGame(arcade.Window):
                 elif i == 1:
                     self.enemy_sprite = Enemy("spider", "SpiderEnemy.png", 1.1, max_health=10)
                     self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
-                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 100
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 + 150
                     self.enemy_list.append(self.enemy_sprite)
                 elif i == 2:
                     self.enemy_sprite = Enemy("spider", "SpiderEnemy.png", 1.1, max_health=10)
                     self.enemy_sprite.center_x = SCREEN_WIDTH / 2 + 225
-                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 100
+                    self.enemy_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16 - 150
                     self.enemy_list.append(self.enemy_sprite)
 
 
@@ -208,6 +211,12 @@ class MyGame(arcade.Window):
                 arcade.draw_lrtb_rectangle_filled(no_health_point, no_health_point + length, player.center_y - 77, player.center_y - 81, color)
                 arcade.draw_text(f"{player.cur_health}/{player.max_health}", no_health_point - 5, player.center_y - 100, arcade.color.WHITE, 10, 50, "left")
 
+        # Draws highlights of enemy boxes if attacking
+        for box in self.box_list:
+            if box.box_type == "attack" and box.is_clicked and not self.target_selected:
+                for enemy in self.enemy_list:
+                    arcade.draw_lrtb_rectangle_outline(enemy.center_x - 40, enemy.center_x + 40, enemy.center_y + 25, enemy.center_y - 25, arcade.color.LIGHT_RED_OCHRE, 2)
+
         if len(self.player_list) == 0:
             arcade.draw_text("GAME OVER", SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT * 3 / 4, arcade.color.RED, 15, 100, "center")
         if len(self.enemy_list) == 0:
@@ -226,7 +235,11 @@ class MyGame(arcade.Window):
             if box.center_x + 20 > self.cursor_sprite.center_x > box.center_x - 20 and \
                 box.center_y + 20 > self.cursor_sprite.center_y > box.center_y - 20:
                 box.is_clicked = True
-    
+            if box.is_clicked and box.box_type == "attack":
+                for enemy in self.enemy_list:
+                    if enemy.center_x - 40 < self.cursor_sprite.center_x < enemy.center_x + 40 and enemy.center_y - 25 < self.cursor_sprite.center_y < enemy.center_y + 25:
+                        self.target_selected = True
+
     def on_key_press(self, key, modifiers):
         
         if key == arcade.key.SPACE:
@@ -274,26 +287,27 @@ class MyGame(arcade.Window):
                 #checks to see if any boxes were clicked
                 for box in self.box_list:
                     if box.is_clicked and box.box_type == "attack":
-                        indexes = []
-                        for enemy in self.enemy_list:
-                            indexes.append(self.enemy_list.index(enemy))
-                        target = random.randrange(len(indexes))
-                        for enemy in self.enemy_list:
-                            if target == self.enemy_list.index(enemy):
-                                self.collider_sprite.center_x = enemy.center_x
-                                self.collider_sprite.center_y = enemy.center_y
+                        if self.target_selected:
+                            indexes = []
+                            for enemy in self.enemy_list:
+                                indexes.append(self.enemy_list.index(enemy))
+                            for enemy in self.enemy_list:
+                                if enemy.center_x - 40 < self.cursor_sprite.center_x < enemy.center_x + 40 and enemy.center_y - 25 < self.cursor_sprite.center_y < enemy.center_y + 25:
+                                    self.collider_sprite.center_x = enemy.center_x
+                                    self.collider_sprite.center_y = enemy.center_y
 
-                        # Adds enemies with a collider over them into the enemies_hit list
-                        enemies_hit = arcade.check_for_collision_with_list(self.collider_sprite, self.enemy_list)
-                        
-                        # Damages enemies with Collider over them. Kills them if their health drops to 0
-                        for enemy in enemies_hit:
-                            enemy.cur_health -= 5
-                            if enemy.cur_health <= 0:
-                                time.sleep(.5)
-                                enemy.remove_from_sprite_lists()
-                        self.your_turn = False
-                        box.is_clicked = False
+                            # Adds enemies with a collider over them into the enemies_hit list
+                            enemies_hit = arcade.check_for_collision_with_list(self.collider_sprite, self.enemy_list)
+                            
+                            # Damages enemies with Collider over them. Kills them if their health drops to 0
+                            for enemy in enemies_hit:
+                                enemy.cur_health -= 5
+                                if enemy.cur_health <= 0:
+                                    time.sleep(.5)
+                                    enemy.remove_from_sprite_lists()
+                            self.target_selected = False
+                            self.your_turn = False
+                            box.is_clicked = False
                     
                     # Heals player associated with box
                     elif box.is_clicked and box.box_type == "heal":
