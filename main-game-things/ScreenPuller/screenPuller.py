@@ -52,9 +52,13 @@ class Screenmake(arcade.Window):
 
         # Indicator for selected targets
         self.target_selected = False
+        self.time_for_attack = False
 
         # number of enemies
         self.enemy_count = 0
+
+        # number of alive players
+        self.players_alive = 0
 
     def setup(self):
         """ Set up the game and initialize the variables. """
@@ -112,6 +116,8 @@ class Screenmake(arcade.Window):
         self.player_sprite.center_y = SCREEN_HEIGHT / 2 + SCREEN_HEIGHT / 16
         self.player_list.append(self.player_sprite)
 
+        self.players_alive = len(self.player_list)
+
         # Boxes to be clicked
         self.box_sprite = battleSceneClasses.Box("Melee_Attack_Sword.png", .5, False, "attack", "Protagonist")
         self.box_list.append(self.box_sprite)
@@ -152,7 +158,7 @@ class Screenmake(arcade.Window):
 
         self.isSetup = True
 
-    # Draws sprites and other game objects (good)
+    # Draws sprites and other game objects
     def on_draw(self):
         arcade.start_render()
 
@@ -161,17 +167,63 @@ class Screenmake(arcade.Window):
         else:
             # Draws all of the battle things
             self.enemy_list.draw()
-            self.player_list.draw()
-            self.box_list.draw()
+            if self.players_alive > 0:
+                self.player_list.draw()
+                if len(self.enemy_list) > 0:
+                    self.box_list.draw()
             self.cursor_list.draw()
-            battleSceneRunner.battle_scene_draw(SCREEN_WIDTH, SCREEN_HEIGHT, self.enemy_list, self.player_list, self.box_list, self.cursor_list, self.target_selected)
+            battleSceneRunner.battle_scene_draw(SCREEN_WIDTH, SCREEN_HEIGHT, self.enemy_list, self.player_list, self.box_list, self.target_selected, self.players_alive)
 
-    # Updates game (good)
+    # Updates game
     def on_update(self, delta_time: float):
         if self.game_started:
-            battleSceneRunner.update_battle(self.enemy_list, self.player_list, self.box_list, self.target_selected, self.your_turn, self.collider_sprite, self.collider_sprite.center_x, self.collider_sprite.center_y, self.cursor_sprite.center_x, self.cursor_sprite.center_y)
+            if len(self.enemy_list) > 0 and self.players_alive > 0:
+                if self.your_turn:
 
-    # Lets cursor move (good)
+                    #checks to see if any boxes were clicked
+                    for box in self.box_list:
+                        if box.is_clicked and box.box_type == "attack":
+                            if self.target_selected:
+                                indexes = []
+                                for enemy in self.enemy_list:
+                                    indexes.append(self.enemy_list.index(enemy))
+                                for enemy in self.enemy_list:
+                                    if enemy.center_x - 40 < self.cursor_sprite.center_x < enemy.center_x + 40 \
+                                        and enemy.center_y - 25 < self.cursor_sprite.center_y < enemy.center_y + 25:
+                                        self.collider_sprite.center_x = battleSceneRunner.position_collider_x(enemy)
+                                        self.collider_sprite.center_y = battleSceneRunner.position_collider_y(enemy)
+
+                                         # Adds enemies with a collider over them into the enemies_hit list
+                                        enemies_hit = arcade.check_for_collision_with_list(self.collider_sprite, self.enemy_list)
+
+                                        battleSceneRunner.hit_enemy(enemies_hit)
+                                        self.target_selected = False
+                                        self.your_turn = False
+                                        for box in self.box_list:
+                                            box.is_clicked = False
+
+                        elif box.is_clicked and box.box_type == "heal":
+                            battleSceneRunner.heal_player(self.player_list, box)
+                            box.is_clicked = False
+                            self.your_turn = False
+                        
+                else:
+                    hit = random.randrange(3)
+                    if hit == 0:
+                        indexes = []
+                        for player in self.player_list:
+                            indexes.append(self.player_list.index(player))
+                        target = random.randrange(len(indexes))
+                        for player in self.player_list:
+                            if target == self.player_list.index(player):
+                                self.collider_sprite.center_x = battleSceneRunner.position_collider_x(player)
+                                self.collider_sprite.center_y = battleSceneRunner.position_collider_y(player)
+                        players_hit = arcade.check_for_collision_with_list(self.collider_sprite, self.player_list)
+                        for player in players_hit:
+                            self.players_alive = battleSceneRunner.enemy_hit_player(player, self.players_alive)
+                    self.your_turn = True
+    
+    # Lets cursor move
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
         if self.game_started:
             self.cursor_sprite.center_x = x
@@ -180,18 +232,18 @@ class Screenmake(arcade.Window):
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         if self.game_started:    
-            battleSceneRunner.mouse_press(self.box_list, self.enemy_list, self.target_selected, self.cursor_sprite.center_x, self.cursor_sprite.center_y)        
+            self.target_selected = battleSceneRunner.mouse_press(self.box_list, self.enemy_list, self.cursor_sprite.center_x, self.cursor_sprite.center_y)        
 
-    # Does key stuff (good)
+    # Does key stuff
     def on_key_press(self, key, modifiers):
             if key == arcade.key.SPACE:
                 if not self.game_started:
                     self.game_started = True
-                else:
+                elif self.game_started and len(self.enemy_list) > 0:
                     battleSceneRunner.action_box_use(SCREEN_WIDTH, self.box_list)
             
-            if key == arcade.key.D and self.game_started:
+            if key == arcade.key.D and self.game_started and len(self.enemy_list) > 0:
                 battleSceneRunner.switch_box_right(SCREEN_WIDTH, self.box_list, self.player_list)
 
-            if key == arcade.key.A and self.game_started:
+            if key == arcade.key.A and self.game_started and len(self.enemy_list) > 0:
                 battleSceneRunner.switch_box_left(SCREEN_WIDTH, self.box_list, self.player_list)
