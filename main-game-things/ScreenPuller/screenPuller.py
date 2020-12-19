@@ -6,7 +6,7 @@ import random
 import time
 from Start import dedicationScreen
 from BattleScene import battleSceneRunner, battleSceneClasses
-from Environment import environmentRunner, environmentClasses
+from Environment import environmentClasses
 
 SCREEN_WIDTH = 1350
 SCREEN_HEIGHT = 750
@@ -41,15 +41,21 @@ class Screenmake(arcade.Window):
         """Used in environment (for walking around)"""
         self.in_environment = False
 
+        # Tracks how far you've gone
+        self.environment_steps = 0
+
         # Sprites in environment
         self.adventurer_list = None
         self.wall_list = None
+        self.encounter_list = None
 
         self.adventurer_sprite = None
         self.wall_sprite = None
+        self.encounter_sprite = None
 
         """Used in battleSceneRunner (for battles)"""
         self.battle_started = False
+        self.swapable = False
 
         # Sprites in battle
         self.enemy_list = None
@@ -82,12 +88,18 @@ class Screenmake(arcade.Window):
 
         """Skeleton setup"""
         # Mouse cursor
+        self.cursor_list = arcade.SpriteList()
+
         self.cursor_sprite = arcade.Sprite("Cursor.png", 1)
         self.cursor_sprite.center_x = SCREEN_WIDTH / 2
         self.cursor_sprite.center_y = SCREEN_HEIGHT / 2
         self.cursor_list.append(self.cursor_sprite)
 
         """Environment setup"""
+        self.adventurer_list = arcade.SpriteList()
+        self.wall_list = arcade.SpriteList()
+        self.encounter_list = arcade.SpriteList()
+
         # Wall creation and placement
         for i in range(int(SCREEN_WIDTH / 64 + 1)):
             self.wall_sprite = environmentClasses.Wall("Box.png", 1)
@@ -112,14 +124,21 @@ class Screenmake(arcade.Window):
         
         # Adventurer
         self.adventurer_sprite = environmentClasses.Adventurer("Protagonist.png", 1)
+        self.adventurer_sprite.center_x = SCREEN_WIDTH / 2
+        self.adventurer_sprite.center_y = SCREEN_HEIGHT / 2
         self.adventurer_list.append(self.adventurer_sprite)
+
+        for i in range(3):
+            self.encounter_sprite = environmentClasses.Encounter("SlugEnemy.png", .3)
+            self.encounter_sprite.center_x = random.randrange(50, 150)
+            self.encounter_sprite.center_y = random.randrange(SCREEN_HEIGHT / 2 - 100, SCREEN_HEIGHT / 2 + 100)
+            self.encounter_list.append(self.encounter_sprite)
 
         """Battle sequence setup"""
         # Sprite lists
         self.enemy_list = arcade.SpriteList()
         self.player_list = arcade.SpriteList()
         self.box_list = arcade.SpriteList()
-        self.cursor_list = arcade.SpriteList()
         self.collider_list = arcade.SpriteList()
 
         self.enemy_count = random.randrange(3) + 1
@@ -213,26 +232,34 @@ class Screenmake(arcade.Window):
         elif self.battle_started:
             # Draws all of the battle things
             self.enemy_list.draw()
+            self.cursor_list.draw()
             if self.players_alive > 0:
                 self.player_list.draw()
                 if len(self.enemy_list) > 0:
                     self.box_list.draw()
-            self.cursor_list.draw()
             battleSceneRunner.battle_scene_draw(SCREEN_WIDTH, SCREEN_HEIGHT, self.enemy_list, self.player_list, self.box_list, self.target_selected, self.players_alive)
             if len(self.enemy_list) == 0:
                 time.sleep(1)
-                self.battle_started = False
-                self.in_environment = True
+                self.swapable = True
 
         elif self.in_environment:
             # Draws environment
             self.cursor_list.draw()
             self.wall_list.draw()
             self.adventurer_list.draw()
+            self.encounter_list.draw()
 
     # Updates game
     def on_update(self, delta_time: float):
-        if self.battle_started:
+        if self.in_environment:
+            self.adventurer_sprite.update()
+            enemy_bump = arcade.check_for_collision_with_list(self.adventurer_sprite, self.encounter_list)
+            if len(enemy_bump) > 0:
+                self.in_environment = False
+                self.battle_started = True
+            for enemy in enemy_bump:
+                enemy.remove_from_sprite_lists()
+        elif self.battle_started:
             if len(self.enemy_list) > 0 and self.players_alive > 0:
                 if self.your_turn:
 
@@ -257,6 +284,9 @@ class Screenmake(arcade.Window):
                                         self.your_turn = False
                                         for box in self.box_list:
                                             box.is_clicked = False
+                                        if self.swapable:
+                                            self.in_environment = True
+                                            self.battle_started = False
 
                         elif box.is_clicked and box.box_type == "heal":
                             battleSceneRunner.heal_player(self.player_list, box)
@@ -292,14 +322,37 @@ class Screenmake(arcade.Window):
 
     # Does key stuff
     def on_key_press(self, key, modifiers):
-            if key == arcade.key.SPACE:
-                if not self.battle_started:
-                    self.battle_started = True
-                elif self.battle_started and len(self.enemy_list) > 0:
-                    battleSceneRunner.action_box_use(SCREEN_WIDTH, self.box_list)
-            
-            if key == arcade.key.D and self.battle_started and len(self.enemy_list) > 0:
+        
+        if key == arcade.key.SPACE:
+            if not self.in_environment and not self.battle_started:
+                self.in_environment = True
+            elif self.battle_started and len(self.enemy_list) > 0:
+                battleSceneRunner.action_box_use(SCREEN_WIDTH, self.box_list)
+        
+        if key == arcade.key.D:
+            if self.battle_started and len(self.enemy_list) > 0:
                 battleSceneRunner.switch_box_right(SCREEN_WIDTH, self.box_list, self.player_list)
+            elif self.in_environment:
+                self.adventurer_sprite.change_x = 3
 
-            if key == arcade.key.A and self.battle_started and len(self.enemy_list) > 0:
+        if key == arcade.key.A:
+            if self.battle_started and len(self.enemy_list) > 0:
                 battleSceneRunner.switch_box_left(SCREEN_WIDTH, self.box_list, self.player_list)
+            elif self.in_environment:
+                self.adventurer_sprite.change_x = -3
+        
+        if key == arcade.key.S:
+            if self.in_environment:
+                self.adventurer_sprite.change_y = -3
+
+        if key == arcade.key.W:
+            if self.in_environment:
+                self.adventurer_sprite.change_y = 3
+    
+    def on_key_release(self, key, modifiers: int):
+        if self.in_environment:
+            if key == arcade.key.D or key == arcade.key.A:
+                self.adventurer_sprite.change_x = 0
+            
+            if key == arcade.key.S or key == arcade.key.W:
+                self.adventurer_sprite.change_y = 0
