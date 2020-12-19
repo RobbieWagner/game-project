@@ -1,7 +1,12 @@
+"""This is the main place where different screens are pulled.
+Many functions are also called here"""
+
 import arcade
 import random
+import time
 from Start import dedicationScreen
 from BattleScene import battleSceneRunner, battleSceneClasses
+from Environment import environmentRunner, environmentClasses
 
 SCREEN_WIDTH = 1350
 SCREEN_HEIGHT = 750
@@ -18,33 +23,45 @@ class Collider(arcade.Sprite):
 
 class Screenmake(arcade.Window):
     def __init__(self):
-        # Initialize window
+
+        """Skeleton"""
+
+        # Initialize window and cursor
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, "GAME")
         arcade.set_background_color(arcade.color.BLACK)
 
-        self.game_started = False
+        self.cursor_list = None
+        self.cursor_sprite = None
+        # Hide mouse
+        self.set_mouse_visible(False)
 
+        # keeps track of setup. No purpose (yet)
+        self.isSetup = False
 
-        """Used in battleSceneRunner"""
-        # Sprites in game
+        """Used in environment (for walking around)"""
+        self.in_environment = False
+
+        # Sprites in environment
+        self.adventurer_list = None
+        self.wall_list = None
+
+        self.adventurer_sprite = None
+        self.wall_sprite = None
+
+        """Used in battleSceneRunner (for battles)"""
+        self.battle_started = False
+
+        # Sprites in battle
         self.enemy_list = None
         self.player_list = None
         self.box_list = None
-        self.cursor_list = None
         self.collider_list = None
 
         # Sprites info
         self.enemy_sprite = None
         self.player_sprite = None
         self.box_sprite = None
-        self.cursor_sprite = None
         self.collider_sprite = None
-
-        # Hide mouse
-        self.set_mouse_visible(False)
-
-        # Countdown variable
-        self.isSetup = False
 
         # Your turn indicator
         self.your_turn = False
@@ -61,8 +78,43 @@ class Screenmake(arcade.Window):
         self.players_alive = 0
 
     def setup(self):
-        """ Set up the game and initialize the variables. """
+        """Set up the game and initialize the variables."""
 
+        """Skeleton setup"""
+        # Mouse cursor
+        self.cursor_sprite = arcade.Sprite("Cursor.png", 1)
+        self.cursor_sprite.center_x = SCREEN_WIDTH / 2
+        self.cursor_sprite.center_y = SCREEN_HEIGHT / 2
+        self.cursor_list.append(self.cursor_sprite)
+
+        """Environment setup"""
+        # Wall creation and placement
+        for i in range(int(SCREEN_WIDTH / 64 + 1)):
+            self.wall_sprite = environmentClasses.Wall("Box.png", 1)
+            self.wall_sprite.center_x = i * 64
+            self.wall_sprite.center_y = 0
+            self.wall_list.append(self.wall_sprite)
+        for i in range(int(SCREEN_WIDTH / 64 + 1)):
+            self.wall_sprite = environmentClasses.Wall("Box.png", 1)
+            self.wall_sprite.center_x = i * 64
+            self.wall_sprite.center_y = SCREEN_HEIGHT
+            self.wall_list.append(self.wall_sprite)
+        for i in range(int(SCREEN_HEIGHT/ 64 + 1)):
+            self.wall_sprite = environmentClasses.Wall("Box.png", 1)
+            self.wall_sprite.center_y = i * 64
+            self.wall_sprite.center_x = SCREEN_WIDTH
+            self.wall_list.append(self.wall_sprite)
+        for i in range(int(SCREEN_HEIGHT/ 64 + 1)):
+            self.wall_sprite = environmentClasses.Wall("Box.png", 1)
+            self.wall_sprite.center_y = i * 64
+            self.wall_sprite.center_x = 0
+            self.wall_list.append(self.wall_sprite)
+        
+        # Adventurer
+        self.adventurer_sprite = environmentClasses.Adventurer("Protagonist.png", 1)
+        self.adventurer_list.append(self.adventurer_sprite)
+
+        """Battle sequence setup"""
         # Sprite lists
         self.enemy_list = arcade.SpriteList()
         self.player_list = arcade.SpriteList()
@@ -135,13 +187,6 @@ class Screenmake(arcade.Window):
                 else:
                     box.center_x = SCREEN_WIDTH + 50
                     box.center_y = SCREEN_HEIGHT + 50
-                
-
-        # Mouse cursor
-        self.cursor_sprite = arcade.Sprite("Cursor.png", 1)
-        self.cursor_sprite.center_x = SCREEN_WIDTH / 2
-        self.cursor_sprite.center_y = SCREEN_HEIGHT / 2
-        self.cursor_list.append(self.cursor_sprite)
 
         # Box for collision checks
         self.collider_sprite = Collider("Collider.png", 1)
@@ -162,9 +207,10 @@ class Screenmake(arcade.Window):
     def on_draw(self):
         arcade.start_render()
 
-        if not self.game_started:
+        if not self.battle_started and not self.in_environment:
             dedicationScreen.dedication_screen_draw(SCREEN_WIDTH, SCREEN_HEIGHT)
-        else:
+        
+        elif self.battle_started:
             # Draws all of the battle things
             self.enemy_list.draw()
             if self.players_alive > 0:
@@ -173,10 +219,20 @@ class Screenmake(arcade.Window):
                     self.box_list.draw()
             self.cursor_list.draw()
             battleSceneRunner.battle_scene_draw(SCREEN_WIDTH, SCREEN_HEIGHT, self.enemy_list, self.player_list, self.box_list, self.target_selected, self.players_alive)
+            if len(self.enemy_list) == 0:
+                time.sleep(1)
+                self.battle_started = False
+                self.in_environment = True
+
+        elif self.in_environment:
+            # Draws environment
+            self.cursor_list.draw()
+            self.wall_list.draw()
+            self.adventurer_list.draw()
 
     # Updates game
     def on_update(self, delta_time: float):
-        if self.game_started:
+        if self.battle_started:
             if len(self.enemy_list) > 0 and self.players_alive > 0:
                 if self.your_turn:
 
@@ -225,25 +281,25 @@ class Screenmake(arcade.Window):
     
     # Lets cursor move
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
-        if self.game_started:
+        if self.battle_started or self.in_environment:
             self.cursor_sprite.center_x = x
             self.cursor_sprite.center_y = y
 
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
-        if self.game_started:    
-            self.target_selected = battleSceneRunner.mouse_press(self.box_list, self.enemy_list, self.cursor_sprite.center_x, self.cursor_sprite.center_y)        
+        if self.battle_started:    
+            self.target_selected = battleSceneRunner.check_for_selection(self.box_list, self.enemy_list, self.cursor_sprite.center_x, self.cursor_sprite.center_y)        
 
     # Does key stuff
     def on_key_press(self, key, modifiers):
             if key == arcade.key.SPACE:
-                if not self.game_started:
-                    self.game_started = True
-                elif self.game_started and len(self.enemy_list) > 0:
+                if not self.battle_started:
+                    self.battle_started = True
+                elif self.battle_started and len(self.enemy_list) > 0:
                     battleSceneRunner.action_box_use(SCREEN_WIDTH, self.box_list)
             
-            if key == arcade.key.D and self.game_started and len(self.enemy_list) > 0:
+            if key == arcade.key.D and self.battle_started and len(self.enemy_list) > 0:
                 battleSceneRunner.switch_box_right(SCREEN_WIDTH, self.box_list, self.player_list)
 
-            if key == arcade.key.A and self.game_started and len(self.enemy_list) > 0:
+            if key == arcade.key.A and self.battle_started and len(self.enemy_list) > 0:
                 battleSceneRunner.switch_box_left(SCREEN_WIDTH, self.box_list, self.player_list)

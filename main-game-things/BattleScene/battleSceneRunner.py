@@ -1,4 +1,4 @@
-""" Sprite Sample Program """
+"""Most of the functions used in battle sequences are defined here"""
 
 import random
 import arcade
@@ -77,7 +77,7 @@ def enemy_hit_player(player, players_alive):
         players_alive -= 1
     return players_alive
 
-def mouse_press(box_list, enemy_list, cursor_sprite_center_x, cursor_sprite_center_y):
+def check_for_selection(box_list, enemy_list, cursor_sprite_center_x, cursor_sprite_center_y):
     # Tracks which enemy is selected
     for box in box_list:
         if box.is_clicked and box.box_type == "attack":

@@ -1,3 +1,5 @@
+""" This code runs the game. Run this when you want to play"""
+
 import arcade
 from BattleScene import battleSceneRunner, battleSceneClasses
 from Start import dedicationScreen
